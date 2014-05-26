@@ -11,7 +11,7 @@ def where(loc):
       dom = DomainLookup.Domain_to_IP(loc)
       return (Locate.Locate(dom))
 def where_users():
-    return Locate.Locate(Connections.LocalUser())
+    return (Connections.LocalUsers())
 
 try:
     print(where(sys.argv[1]))
