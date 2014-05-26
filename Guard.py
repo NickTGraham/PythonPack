@@ -8,7 +8,11 @@ import subprocess
 import re
 import sys
 
+
+locations = ''
+
 def Guard(): #checks were current connections are, and if not approved locations, reports it.
+    global locations
     ip_con = Connections.Connections('ip') #find the ip connections
     ip_dom = Connections.Connections('domain') #find domain connections
     ip_loc = ''
@@ -41,4 +45,4 @@ if(Guard()): #if there is a problem
     else: #otherwise
         file.seek(0,0)
         file.write('We Have a Problem') #log the problem in the file
-        GMail.email('From', ['to'], 'Intruder', 'We have an issue') #send email about the problem
+        GMail.email('From', ['to'], 'Intruder', 'We have an issue\n' + locations) #send email about the problem
