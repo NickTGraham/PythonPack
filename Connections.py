@@ -4,6 +4,7 @@ import subprocess
 import re
 import sys
 import Locate
+import DomainLookup
 
 def Connections(connection_type): #Find Locations of users that are logged in
     cmd = ['pinky'] #try to run the pinky command
@@ -32,7 +33,7 @@ def LocalUsers():
 
     Domain_IPs = []
     for domain in Domains:
-        Domain_IPs.append( Domain_to_IP(domain) )
+        Domain_IPs.append( DomainLookup.Domain_to_IP(domain) )
     
     i = 0
     output = ''
