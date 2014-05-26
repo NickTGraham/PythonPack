@@ -4,12 +4,16 @@ import Connections
 import DomainLookup
 import sys
 
-if (len(sys.argv) > 1):
+def where(loc):
     try:
-        print (Locate.Locate(sys.argv[1]))
+      return (Locate.Locate(loc))
     except:
-            dom = DomainLookup.Domain_to_IP(sys.argv[2])
-            print (Locate.Locate(dom))
+      dom = DomainLookup.Domain_to_IP(loc)
+      return (Locate.Locate(dom))
+def where_users():
+    return Locate.Locate(Connections.LocalUser())
 
-else:
-    print(Connections.LocalUsers())
+try:
+    print(where(sys.argv[1]))
+except:
+    print(where_users())
