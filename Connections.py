@@ -3,6 +3,7 @@ import os
 import subprocess
 import re
 import sys
+import Locate
 
 def Connections(connection_type): #Find Locations of users that are logged in
     cmd = ['pinky'] #try to run the pinky command
@@ -24,3 +25,23 @@ def Connections(connection_type): #Find Locations of users that are logged in
     for x in ips: #this removes extra characters picked up
         result.append(x.replace('\\t','').replace("\\n'", '').replace('(', '').replace(')', ''))
     return result
+
+def LocalUsers():
+    IPs_Connected = Connections('ip')
+    Domains = Connections('domain')
+
+    Domain_IPs = []
+    for domain in Domains:
+        Domain_IPs.append( Domain_to_IP(domain) )
+    
+    i = 0
+    output = ''
+    for domain in Domain_IPs:
+        output = output + (Domains[i] + ' : ' + domain) + '\n'
+        output = output + (Locate.Locate(domain)) + '\n'
+        i = i+1
+    
+    for ip in IPs_Connected:
+        output = output + ip + '\n'
+        output = output + Locate.Locate(ip) + '\n'
+    return output
