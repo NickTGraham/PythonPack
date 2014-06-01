@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 import re
 import urllib
-from urllib.request import urlopen
-import requests
 import sys
+if (sys.version_info < (3, 0)):
+    from urllib import urlopen
+else:
+    from urllib.request import urlopen
+import requests
+
 
 def landline(phonenumber):
     info = urlopen('http://www.yellowpages.com/reversephonelookup?phone=' + phonenumber)
