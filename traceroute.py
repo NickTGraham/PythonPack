@@ -1,8 +1,9 @@
 import socket
 import struct
 import DomainLookup
+import sys
 
-def main (domain):
+def traceroute (domain):
     finished = False
     ip = DomainLookup.Domain_to_IP(domain)
     icmp = socket.getprotobyname('icmp')
@@ -45,5 +46,8 @@ def main (domain):
         #break once done
         if current_ip == ip:
             finished = True
-if __name__ == '__main__':
-    main('www.google.com')
+        if counter > 35:
+            print ('ForceStopped')
+            finished = True
+if len(sys.argv) > 1:
+    traceroute(sys.argv[1])
