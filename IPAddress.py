@@ -12,13 +12,15 @@ def ExtIP(): #Get the computers external IP Address
     ip = re.compile("\d+\.\d+\.\d+\.\d+") #Regular Expression for IP Address
     fqn = os.uname()[1] #Get the computers name
     try: #try to connect to whatsmyip.org
-        ext_ip = urlopen('http://whatismyipaddress.com/').read()
+        ext_ip = urlopen('https://myexternalip.com/').read()
     except: #if that fails try private internet access
         print('Failed. Trying again.')
         ext_ip = urlopen('https://www.privateinternetaccess.com/pages/whats-my-ip/').read()
     list = ip.findall(str(ext_ip)) #search through page to get IP
-    return (fqn + "\nExternal IP: " + list[0]) #return computer name and IP Address
-
+    try:
+        return (fqn + "\nExternal IP: " + list[0]) #return computer name and IP Address
+    except:
+        return ('failed to find IP')
 def IntIP(): #Get Internal (Local) IP Address
     local = ("Internal IP: " + socket.gethostbyname(socket.gethostname())) #get IP through socket.gethostname
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
