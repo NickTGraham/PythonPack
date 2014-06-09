@@ -12,7 +12,7 @@ def ExtIP(): #Get the computers external IP Address
     ip = re.compile("\d+\.\d+\.\d+\.\d+") #Regular Expression for IP Address
     fqn = os.uname()[1] #Get the computers name
     try: #try to connect to whatsmyip.org
-        ext_ip = urlopen('http://whatismyip.org').read()
+        ext_ip = urlopen('http://whatismyipaddress.com/').read()
     except: #if that fails try private internet access
         print('Failed. Trying again.')
         ext_ip = urlopen('https://www.privateinternetaccess.com/pages/whats-my-ip/').read()
