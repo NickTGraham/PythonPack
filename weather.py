@@ -76,6 +76,29 @@ def getAstronomy (root):
     result.append(ast[0].get('sunrise'))
     result.append(ast[0].get('sunset'))
     return (result)
+def fiveDay(urlData):
+    data = ET.parse(urlData)
+    root = data.getroot()
+    
+    units = (getUnits(root))
+    five = root.findall('.//{http://xml.weather.yahoo.com/ns/rss/1.0}forecast')
 
-if (len(sys.argv) > 1):
+    degree = units[0]
+    
+    for day in five:
+        date = day.get('date')
+        wDay = day.get('day')
+        high = day.get('high')
+        low = day.get('low')
+        weather = day.get('text')
+        report = '{0} {1}\n{2}\nHigh: {3}º{5} \t Low: {4}º{5}\n'.format(wDay, date, weather, high, low, degree)
+        print(report)
+    
+
+if (len(sys.argv) > 2):
+    if sys.argv[2] == '-5':
+        fiveDay(getForcast(sys.argv[1]))
+    else:
+        parseWeather(getForcast(sys.argv[1]))
+elif (len(sys.argv) > 1):
     parseWeather(getForcast(sys.argv[1]))
