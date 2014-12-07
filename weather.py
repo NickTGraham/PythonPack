@@ -102,3 +102,6 @@ if (len(sys.argv) > 2):
         parseWeather(getForcast(sys.argv[1]))
 elif (len(sys.argv) > 1):
     parseWeather(getForcast(sys.argv[1]))
+
+else:
+    print("Enter a zipcode to see the current weather report.\n\t Options\n\t -5:  Print a five day forecast.")
