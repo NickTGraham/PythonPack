@@ -11,7 +11,7 @@ def getForcast(zipcode):
 def parseWeather (urlData):
     data = ET.parse(urlData)
     root = data.getroot()
-    
+
     location = (getLocation(root))
     condition = (getCondition(root))
     units = (getUnits(root))
@@ -79,12 +79,12 @@ def getAstronomy (root):
 def fiveDay(urlData):
     data = ET.parse(urlData)
     root = data.getroot()
-    
+
     units = (getUnits(root))
     five = root.findall('.//{http://xml.weather.yahoo.com/ns/rss/1.0}forecast')
 
     degree = units[0]
-    
+
     for day in five:
         date = day.get('date')
         wDay = day.get('day')
@@ -93,11 +93,13 @@ def fiveDay(urlData):
         weather = day.get('text')
         report = '{0} {1}\n{2}\nHigh: {3}º{5} \t Low: {4}º{5}\n'.format(wDay, date, weather, high, low, degree)
         print(report)
-    
+
 
 if (len(sys.argv) > 2):
     if sys.argv[2] == '-5':
         fiveDay(getForcast(sys.argv[1]))
+    elif sys.argv[1] == '-5':
+        fiveDay(getForcast(sys.argv[2]))
     else:
         parseWeather(getForcast(sys.argv[1]))
 elif (len(sys.argv) > 1):
