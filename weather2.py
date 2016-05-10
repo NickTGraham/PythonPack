@@ -15,18 +15,21 @@ gn = geocoders.Nominatim()
 APIKEY = ""
 Long, Lat = "",""
 PBKEY = ""
+commonName = ""
 
 def getDefaults():
-    global APIKEY, Long, Lat, PBKEY
+    global APIKEY, Long, Lat, PBKEY, commonName
     dotfile = open(os.path.join(os.path.expanduser('~'),'.nickrc'))
     APIKEY = dotfile.readline().rstrip("\r\n")
     Long = dotfile.readline().rstrip("\r\n")
     Lat = dotfile.readline().rstrip("\r\n")
+    commonName = dotfile.readline().rstrip("\r\n")
     PBKEY = dotfile.readline().rstrip("\r\n")
 
 def coordinatesFromZipcode(zipcode):
-    global Long, Lat
+    global Long, Lat, commonName
     location = gn.geocode(zipcode)
+    commonName = location.address.split(",")[0]
     Long = "{0:.3f}".format(location.longitude)
     Lat = "{0:.3f}".format(location.latitude)
 
@@ -43,8 +46,23 @@ def todaysResults(response):
     summary = daily["summary"]
     high = daily["temperatureMax"]
     low = daily["temperatureMin"]
-    rain = daily["precipProbability"]
-    report = '{3}\n{0}\nHigh: {1} \t Low: {2}\n{4}% Chance of Rain'.format(summary, high, low, day, rain)
+    rain = "{0:.0f}".format(float(daily["precipProbability"]) * 100)
+    report = '{5}\t{3}\n{0}\nHigh: {1} \t Low: {2}\n{4}% Chance of Rain'.format(summary, high, low, day, rain, commonName)
+    return report
+
+def weeklyResults(response):
+    information = response["daily"]["data"]
+    report = ""
+    for dayReport in information:
+        time = dayReport["apparentTemperatureMaxTime"]
+        day = datetime.datetime.utcfromtimestamp(time).date()
+        day = formatDate(day)
+        summary = dayReport["summary"]
+        high = dayReport["temperatureMax"]
+        low = dayReport["temperatureMin"]
+        rain = "{0:.0f}".format(float(dayReport["precipProbability"]) * 100)
+        sample = '{5}\t{3}\n{0}\nHigh: {1} \t Low: {2}\n{4}% Chance of Rain\n\n'.format(summary, high, low, day, rain, commonName)
+        report = report + sample
     return report
 
 def formatDate(date):
@@ -78,17 +96,26 @@ def formatDate(date):
 getDefaults()
 pb = Pushbullet(PBKEY)
 push = False
+weekly = False
 regex = re.compile("^\d{5}$")
 for arg in sys.argv:
     if arg == "push":
         push = True
     elif regex.match(arg):
         coordinatesFromZipcode(arg)
+    elif arg == "weekly":
+        weekly = True
 #if (len(sys.argv) > 1):
 #    coordinatesFromZipcode(sys.argv[1])
 
 results = getForcast(APIKEY, Long, Lat)
-if push:
-    pb.push_note("Weather", todaysResults(results))
+
+if weekly:
+    weather = weeklyResults(results)
 else:
-    print (todaysResults(results))
+    weather = todaysResults(results)
+
+if push:
+    pb.push_note("Weather", weather)
+else:
+    print (weather)
