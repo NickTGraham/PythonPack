@@ -7,24 +7,29 @@ import sys
 import datetime
 import os
 from geopy import geocoders
+from pushbullet import Pushbullet
+import re
 
 gn = geocoders.Nominatim()
 
 APIKEY = ""
 Long, Lat = "",""
+PBKEY = ""
 
 def getDefaults():
-    global APIKEY, Long, Lat
+    global APIKEY, Long, Lat, PBKEY
     dotfile = open(".nickrc")
     APIKEY = dotfile.readline().rstrip("\r\n")
     Long = dotfile.readline().rstrip("\r\n")
     Lat = dotfile.readline().rstrip("\r\n")
+    PBKEY = dotfile.readline().rstrip("\r\n")
 
 def coordinatesFromZipcode(zipcode):
     global Long, Lat
     location = gn.geocode(zipcode)
     Long = "{0:.3f}".format(location.longitude)
     Lat = "{0:.3f}".format(location.latitude)
+
 def getForcast(APIKEY, Long, Lat):
     url = "https://api.forecast.io/forecast/" + APIKEY + "/" + Lat + "," + Long
     response = requests.get(url)
@@ -71,6 +76,19 @@ def formatDate(date):
     return '{0} {1} {2}'.format(weekday, month, date.day)
 
 getDefaults()
-#coordinatesFromZipcode('02852')
+pb = Pushbullet(PBKEY)
+push = False
+regex = re.compile("^\d{5}$")
+for arg in sys.argv:
+    if arg == "push":
+        push = True
+    elif regex.match(arg):
+        coordinatesFromZipcode(arg)
+#if (len(sys.argv) > 1):
+#    coordinatesFromZipcode(sys.argv[1])
+
 results = getForcast(APIKEY, Long, Lat)
-print (todaysResults(results))
+if push:
+    pb.push_note("Weather", todaysResults(results))
+else:
+    print (todaysResults(results))
