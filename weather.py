@@ -1,109 +1,121 @@
 #!/usr/bin/env python3
 
-from urllib.request import urlopen
-import xml.etree.ElementTree as ET
+#Remaking my weather script to use forcast.io now that Yahoo weather is gone
+
+import requests
 import sys
+import datetime
+import os
+from geopy import geocoders
+from pushbullet import Pushbullet
+import re
 
-def getForcast(zipcode):
-    w="http://xml.weather.yahoo.com/forecastrss?p=" + zipcode
-    return urlopen(w)
+gn = geocoders.Nominatim()
 
-def parseWeather (urlData):
-    data = ET.parse(urlData)
-    root = data.getroot()
+APIKEY = ""
+Long, Lat = "",""
+PBKEY = ""
+commonName = ""
 
-    location = (getLocation(root))
-    condition = (getCondition(root))
-    units = (getUnits(root))
-    wind = (getWind(root))
-    atm = (getAtmosphere(root))
-    ast = (getAstronomy(root))
+def getDefaults():
+    global APIKEY, Long, Lat, PBKEY, commonName
+    dotfile = open(os.path.join(os.path.expanduser('~'),'.nickrc'))
+    APIKEY = dotfile.readline().rstrip("\r\n")
+    Long = dotfile.readline().rstrip("\r\n")
+    Lat = dotfile.readline().rstrip("\r\n")
+    commonName = dotfile.readline().rstrip("\r\n")
+    PBKEY = dotfile.readline().rstrip("\r\n")
 
-    city = location[0]
-    state = location[1]
+def coordinatesFromZipcode(zipcode):
+    global Long, Lat, commonName
+    location = gn.geocode(zipcode)
+    commonName = location.address.split(",")[0]
+    Long = "{0:.3f}".format(location.longitude)
+    Lat = "{0:.3f}".format(location.latitude)
 
-    weather = condition[0]
-    temp = condition[1]
-    date = condition [2]
+def getForcast(APIKEY, Long, Lat):
+    url = "https://api.forecast.io/forecast/" + APIKEY + "/" + Lat + "," + Long
+    response = requests.get(url)
+    return response.json()
 
-    degree = units[0]
-    speed = units[1]
+def todaysResults(response):
+    daily = response["daily"]["data"][0]
+    time = daily["apparentTemperatureMaxTime"]
+    day = datetime.datetime.utcfromtimestamp(time).date()
+    day = formatDate(day)
+    summary = daily["summary"]
+    high = daily["temperatureMax"]
+    low = daily["temperatureMin"]
+    rain = "{0:.0f}".format(float(daily["precipProbability"]) * 100)
+    report = '{5}\t{3}\n{0}\nHigh: {1} \t Low: {2}\n{4}% Chance of Rain'.format(summary, high, low, day, rain, commonName)
+    return report
 
-    windchill = wind[0]
-    windspeed = wind[1]
+def weeklyResults(response):
+    information = response["daily"]["data"]
+    report = ""
+    for dayReport in information:
+        time = dayReport["apparentTemperatureMaxTime"]
+        day = datetime.datetime.utcfromtimestamp(time).date()
+        day = formatDate(day)
+        summary = dayReport["summary"]
+        high = dayReport["temperatureMax"]
+        low = dayReport["temperatureMin"]
+        rain = "{0:.0f}".format(float(dayReport["precipProbability"]) * 100)
+        sample = '{5}\t{3}\n{0}\nHigh: {1} \t Low: {2}\n{4}% Chance of Rain\n\n'.format(summary, high, low, day, rain, commonName)
+        report = report + sample
+    return report
 
-    humidity = atm[0]
+def formatDate(date):
+    weekday = {
+                0: "Monday",
+                1: "Tuesday",
+                2: "Wednesday",
+                3: "Thursday",
+                4: "Friday",
+                5: "Saturday",
+                6: "Sunday"
+    }[date.weekday()]
 
-    sunrise = ast[0]
-    sunset = ast[1]
+    month = {
+                1: "January",
+                2: "February",
+                3: "March",
+                4: "April",
+                5: "May",
+                6: "June",
+                7: "July",
+                8: "August",
+                9: "September",
+                10: "October",
+                11: "November",
+                12: "December"
+    }[date.month]
 
-    report = "{0}, {1}\n{2} {3}º{4}\nWindchill: {5}º{4} \t Windspeed: {6} {7}\nHumidity: {8}%\nSunrise: {9} \t Sunset: {10}".format(city, state, weather, temp, degree, windchill, windspeed, speed, humidity, sunrise, sunset)
-    print(report)
+    return '{0} {1} {2}'.format(weekday, month, date.day)
 
-def getLocation (root):
-    location = root.findall('.//{http://xml.weather.yahoo.com/ns/rss/1.0}location')
-    result = []
-    result.append(location[0].get('city'))
-    result.append(location[0].get('region'))
-    return (result);
-def getCondition (root):
-    condition = root.findall('.//{http://xml.weather.yahoo.com/ns/rss/1.0}condition')
-    result = []
-    result.append(condition[0].get('text'))
-    result.append(condition[0].get('temp'))
-    result.append(condition[0].get('date'))
-    return(result)
-def getUnits (root):
-    units = root.findall('.//{http://xml.weather.yahoo.com/ns/rss/1.0}units')
-    result = []
-    result.append(units[0].get('temperature'))
-    result.append(units[0].get('speed'))
-    return (result)
-def getWind (root):
-    wind = root.findall('.//{http://xml.weather.yahoo.com/ns/rss/1.0}wind')
-    result = []
-    result.append(wind[0].get('chill'))
-    result.append(wind[0].get('speed'))
-    return (result)
-def getAtmosphere (root):
-    atm = root.findall('.//{http://xml.weather.yahoo.com/ns/rss/1.0}atmosphere')
-    result = []
-    result.append(atm[0].get('humidity'))
-    return (result)
-def getAstronomy (root):
-    ast = root.findall('.//{http://xml.weather.yahoo.com/ns/rss/1.0}astronomy')
-    result = []
-    result.append(ast[0].get('sunrise'))
-    result.append(ast[0].get('sunset'))
-    return (result)
-def fiveDay(urlData):
-    data = ET.parse(urlData)
-    root = data.getroot()
+getDefaults()
+pb = Pushbullet(PBKEY)
+push = False
+weekly = False
+regex = re.compile("^\d{5}$")
+for arg in sys.argv:
+    if arg == "push":
+        push = True
+    elif regex.match(arg):
+        coordinatesFromZipcode(arg)
+    elif arg == "weekly":
+        weekly = True
+#if (len(sys.argv) > 1):
+#    coordinatesFromZipcode(sys.argv[1])
 
-    units = (getUnits(root))
-    five = root.findall('.//{http://xml.weather.yahoo.com/ns/rss/1.0}forecast')
+results = getForcast(APIKEY, Long, Lat)
 
-    degree = units[0]
-
-    for day in five:
-        date = day.get('date')
-        wDay = day.get('day')
-        high = day.get('high')
-        low = day.get('low')
-        weather = day.get('text')
-        report = '{0} {1}\n{2}\nHigh: {3}º{5} \t Low: {4}º{5}\n'.format(wDay, date, weather, high, low, degree)
-        print(report)
-
-
-if (len(sys.argv) > 2):
-    if sys.argv[2] == '-5':
-        fiveDay(getForcast(sys.argv[1]))
-    elif sys.argv[1] == '-5':
-        fiveDay(getForcast(sys.argv[2]))
-    else:
-        parseWeather(getForcast(sys.argv[1]))
-elif (len(sys.argv) > 1):
-    parseWeather(getForcast(sys.argv[1]))
-
+if weekly:
+    weather = weeklyResults(results)
 else:
-    print("Enter a zipcode to see the current weather report.\n\t Options\n\t -5:  Print a five day forecast.")
+    weather = todaysResults(results)
+
+if push:
+    pb.push_note("Weather", weather)
+else:
+    print (weather)
