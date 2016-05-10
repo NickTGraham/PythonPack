@@ -18,7 +18,7 @@ PBKEY = ""
 
 def getDefaults():
     global APIKEY, Long, Lat, PBKEY
-    dotfile = open(".nickrc")
+    dotfile = open(os.path.join(os.path.expanduser('~'),'.nickrc'))
     APIKEY = dotfile.readline().rstrip("\r\n")
     Long = dotfile.readline().rstrip("\r\n")
     Lat = dotfile.readline().rstrip("\r\n")
