@@ -9,6 +9,7 @@ import os
 from geopy import geocoders
 from pushbullet import Pushbullet
 import re
+from Dotfile import dotfile
 
 gn = geocoders.Nominatim()
 
@@ -19,12 +20,12 @@ commonName = ""
 
 def getDefaults():
     global APIKEY, Long, Lat, PBKEY, commonName
-    dotfile = open(os.path.join(os.path.expanduser('~'),'.nickrc'))
-    APIKEY = dotfile.readline().rstrip("\r\n")
-    Long = dotfile.readline().rstrip("\r\n")
-    Lat = dotfile.readline().rstrip("\r\n")
-    commonName = dotfile.readline().rstrip("\r\n")
-    PBKEY = dotfile.readline().rstrip("\r\n")
+    info = dotfile()
+    APIKEY = info.getVal("forcast.io")
+    Long = info.getVal("long")
+    Lat = info.getVal("lat")
+    commonName = info.getVal("location")
+    PBKEY = info.getVal("pushbullet")
 
 def coordinatesFromZipcode(zipcode):
     global Long, Lat, commonName
