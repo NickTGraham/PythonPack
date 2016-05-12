@@ -11,6 +11,7 @@ class dotfile:
                 line = line.rstrip("\r\n")
                 results = line.split("=")
                 self.vals[results[0]] = results[1]
+        info.close()
 
     def getVal(self, valKey):
         return self.vals[valKey]
