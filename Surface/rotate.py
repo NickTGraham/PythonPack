@@ -4,11 +4,10 @@ import subprocess
 import re
 
 status = subprocess.check_output(["xrandr", "-q"])
-print (status)
 
 lines = status.split("\n")
-print (lines)
 stat = ""
+
 for line in lines:
     if "eDP-1" in line:
         stat = line
