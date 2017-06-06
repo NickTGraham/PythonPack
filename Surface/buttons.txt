@@ -1,0 +1,5 @@
+Rotate Left = myrotate -r
+Rotate Right = myrotate -l
+Autorotate = autorotate.py &
+Reset Wifi = gksudo resetwifi
+Toggle Autorotate = changeautorotatestatus.py

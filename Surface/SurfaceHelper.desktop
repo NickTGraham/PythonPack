@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=SurfaceHelper
+Comment=This is my comment
+Exec=/usr/local/bin/TestGUI/testGUI.py
+Icon=/usr/share/pixmaps/python.xpm
+Path=/usr/local/bin/TestGUI/
+Terminal=false
+Type=Application
+Categories=Utility;Application;
