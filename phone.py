@@ -25,6 +25,12 @@ def mobile(phonenumber):
     name = person.findall(str(data))
     return (name)
 
+def newMobile(phone):
+       url = "https://www.facebook.com/search/top/?q=" + str(phone)
+       req = requests.post(url)
+       data = req.text.encode("utf8")
+       print(data)
+
 if (len(sys.argv) > 1):
     phone = re.compile('\d{10,11}')
     if (phone.match(sys.argv[1])):
