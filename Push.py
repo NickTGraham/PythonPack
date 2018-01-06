@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 from pushbullet import Pushbullet
 import re
 from Dotfile import dotfile

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python2.7
 
 import requests
 import pickle
@@ -28,9 +28,15 @@ def main():
         headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
         response = requests.get(site, headers=headers)
 
-        comp = SequenceMatcher(None, status[site], response.text)
-        if comp.ratio() < 0.95:
-            pb.push_note("Shiba Alert", site + " has updated!")
+        comp = SequenceMatcher(None, status[site][0], response.text)
+        print(site, comp.ratio())
+        if comp.ratio() < status[site][1]:
+            pb.push_note("Shiba Alert", site + " has updated!" + str(comp.ratio()))
+            status[site] = [response.text, comp.ratio()]
+        #status[site] = [response.text, comp.ratio()]
+    
+    websites.seek(0)
+    pickle.dump(status, websites)
     websites.close()
 
 def addSite(url):
