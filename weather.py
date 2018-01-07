@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 #Remaking my weather script to use forcast.io now that Yahoo weather is gone
 
